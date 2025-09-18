@@ -14,8 +14,6 @@ unset 'inputs[-1]'
 # Get the number of images (excluding the last argument)
 num_images=$(($# - 1))
 
-echo $inputs
-
 read -r W H <<< "$(identify -format "%w %h" "$inputs")"
 
 # Calculate the optimal number of rows and columns
