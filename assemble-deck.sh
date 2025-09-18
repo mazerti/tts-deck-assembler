@@ -14,11 +14,23 @@ unset 'inputs[-1]'
 # Get the number of images (excluding the last argument)
 num_images=$(($# - 1))
 
+if [ "$num_images" -gt 70 ] ;then
+    echo "Too many cards, not tts compatible"
+    exit 1
+fi
+
 read -r W H <<< "$(identify -format "%w %h" "$inputs")"
 
 # Calculate the optimal number of rows and columns
 cols=$(echo "scale=0; $(echo "scale=2; sqrt($num_images * $W * $H) + 0.999" | bc ) / $W " | bc ) 
+cols=$(($cols>10?$cols:10))
 rows=$(echo "scale=0; ($(echo "scale=2; $num_images / $cols" | bc) + 0.999) / 1 " | bc)
+
+if [ "$rows" -gt 7 ]; then
+    rows=$(echo "scale=0; $(echo "scale=2; sqrt($num_images * $W * $H) + 0.999" | bc ) / $H " | bc ) 
+    rows=$(($rows>7?$rows:7))
+    cols=$(echo "scale=0; ($(echo "scale=2; $num_images / $rows" | bc) + 0.999) / 1 " | bc)
+fi
 
 # Create a temporary directory for the processed images
 temp_dir=$(mktemp -d)
@@ -43,4 +55,4 @@ done
 # Now append the rows vertically using -append
 convert "${row_images[@]}" -append $output_image
 
-echo "Grid image created as $output_image"
+echo "$cols x $rows grid created as $output_image"
